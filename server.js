@@ -1,4 +1,5 @@
 var express = require('express');
+var https = require('https');
 var app = express();
 
 var port = process.env.PORT || 8080;
@@ -13,6 +14,24 @@ app.get('/favicon.ico', function (req, res) {
 });
 
 app.get('/public/*', function (req, res) {
+  var dataReq = https.get(url, function(dataRes) {
+    // save the data
+    var xml = '';
+    dataRes.on('data', function(chunk) {
+      xml += chunk;
+    });
+  
+    dataRes.on('end', function() {
+      // parse xml
+    });
+  
+    // or you can pipe the data to a parser
+    dataRes.pipe(dest);
+  });
+  
+  dataReq.on('error', function(err) {
+    // debug error
+  });
   res.sendFile(path + req.url);
 });
 
