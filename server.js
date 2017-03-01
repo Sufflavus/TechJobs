@@ -1,40 +1,56 @@
 var express = require('express');
-var https = require('https');
+var http = require('http');
+var parseString = require('xml2js').parseString;
+var fs = require('fs');
+var jsonfile = require('jsonfile');
 var app = express();
 
 var port = process.env.PORT || 8080;
 var path = process.cwd();
 
 app.get('/', function (req, res) {
-  res.sendFile(path + '/public/index.html');
+    res.sendFile(path + '/public/index.html');
 });
 
 app.get('/favicon.ico', function (req, res) {
-  res.sendFile(path + '/public/favicon.ico');
+    
 });
 
 app.get('/public/*', function (req, res) {
-  var dataReq = https.get(url, function(dataRes) {
-    // save the data
-    var xml = '';
-    dataRes.on('data', function(chunk) {
-      xml += chunk;
+    res.sendFile(path + req.url);
+});
+
+app.get('/api/refreshData', function (req, res) {
+    var dataReq = http.get("http://stackoverflow.com/jobs/feed", function(dataRes) {
+        var xml = '';
+        dataRes.on('data', function(chunk) {
+            xml += chunk;
+        });
+    
+        dataRes.on('end', function() {
+            parseString(xml, function (err, result) {
+                var file = '/public/js/data.json';
+                
+                jsonfile.writeFile(file, result.rss.channel[0].item[0], function (err) {
+                    console.error(err);
+                });
+                
+                //console.dir(result.rss.channel[0].item[0].category);
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify(result.rss.channel[0]));
+            });
+            // parse xml
+        });
+    
+        // or you can pipe the data to a parser
+        //dataRes.pipe(dest);
     });
-  
-    dataRes.on('end', function() {
-      // parse xml
+    
+    dataReq.on('error', function(err) {
+        // debug error
     });
-  
-    // or you can pipe the data to a parser
-    dataRes.pipe(dest);
-  });
-  
-  dataReq.on('error', function(err) {
-    // debug error
-  });
-  res.sendFile(path + req.url);
 });
 
 app.listen(port, function () {
-  console.log('Example app listening on port ' + port);
+    console.log('Example app listening on port ' + port);
 });
