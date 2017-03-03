@@ -26,7 +26,7 @@ app.get('/api/refreshData', function (req, res) {
         dataRes.on('data', function(chunk) {
             xml += chunk;
         });
-    
+
         dataRes.on('end', function() {
             parseString(xml, function (err, result) {
                 var file = '/public/js/data.json';
@@ -35,19 +35,14 @@ app.get('/api/refreshData', function (req, res) {
                     console.error(err);
                 });
                 
-                //console.dir(result.rss.channel[0].item[0].category);
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(result.rss.channel[0]));
             });
-            // parse xml
         });
-    
-        // or you can pipe the data to a parser
-        //dataRes.pipe(dest);
     });
-    
+
     dataReq.on('error', function(err) {
-        // debug error
+        console.log(err);
     });
 });
 
